@@ -1,7 +1,6 @@
 const { expect } = require("chai");
 const { network, ethers } = require("hardhat");
 const { BigNumber, utils } = require("ethers");
-const { writeFile } = require("fs");
 
 describe("Liquidation for question 3", function () {
   it("test", async function () {
@@ -18,7 +17,7 @@ describe("Liquidation for question 3", function () {
     });
 
     const gasPrice = 0;
-    const debt = ethers.utils.parseUnits("8520", 6);
+    const debt_USDC = ethers.utils.parseUnits("8520", 6);
 
     const accounts = await ethers.getSigners();
     const liquidator = accounts[0].address;
@@ -39,7 +38,7 @@ describe("Liquidation for question 3", function () {
     await liquidationOperator.deployed();
 
     const liquidationTx = await liquidationOperator.operate(
-      debt,
+      debt_USDC,
       (overrides = { gasPrice: gasPrice })
     );
     const liquidationReceipt = await liquidationTx.wait();
@@ -80,7 +79,7 @@ describe("Liquidation for question 3", function () {
     console.log("Profit", utils.formatEther(profit), "ETH");
 
     console.log(
-      `Profit from using ${usdtValue} USDC for the liquidation is`,
+      `Profit from using ${debt_USDC} USDC for the liquidation is`,
       utils.formatEther(profit),
       "ETH"
     );

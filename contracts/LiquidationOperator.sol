@@ -142,9 +142,7 @@ contract LiquidationOperator is IUniswapV2Callee {
 
 
     IUniswapV2Factory constant uniswapV2Factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
-    IUniswapV2Pair immutable uniswapV2Pair_USDC_WETH; // Pool1
-    // IUniswapV2Pair immutable uniswapV2Pair_WETH_USDT; // Pool1
-    // IUniswapV2Pair immutable uniswapV2Pair_WBTC_WETH; // Pool2
+    IUniswapV2Pair immutable uniswapV2Pair_WETH_USDC; // Pool1
 
     ILendingPool constant lendingPool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
 
@@ -194,7 +192,7 @@ contract LiquidationOperator is IUniswapV2Callee {
     constructor() {
         // TODO: (optional) initialize your contract
 
-        uniswapV2Pair_USDC_WETH = IUniswapV2Pair(uniswapV2Factory.getPair(address(USDC), address(WETH))); // Pool1
+        uniswapV2Pair_WETH_USDC = IUniswapV2Pair(uniswapV2Factory.getPair(address(WETH), address(USDC))); // Pool1
 
         // END TODO
     }
@@ -238,7 +236,7 @@ contract LiquidationOperator is IUniswapV2Callee {
         // (please feel free to develop other workflows as long as they liquidate the target user successfully)
         debt_USDC = _debt_USDC;
 
-        uniswapV2Pair_USDC_WETH.swap(0, debt_USDC, address(this), "$");
+        uniswapV2Pair_WETH_USDC.swap(debt_USDC, 0, address(this), "$");
 
         // 3. Convert the profit into ETH and send back to sender
 
@@ -252,40 +250,29 @@ contract LiquidationOperator is IUniswapV2Callee {
     // required by the swap
     function uniswapV2Call(
         address,
+        uint256 amount0,
         uint256,
-        uint256 amount1,
         bytes calldata
     ) external override {
         // TODO: implement your liquidation logic
 
         // 2.0. security checks and initializing variables
         
-        assert(msg.sender == address(uniswapV2Pair_USDC_WETH));
-        (uint256 reserve_WETH, uint256 reserve_USDC, ) = uniswapV2Pair_USDC_WETH.getReserves(); // Pool1
+        assert(msg.sender == address(uniswapV2Pair_WETH_USDC));
+        (uint256 reserve_USDC, uint256 reserve_WETH, ) = uniswapV2Pair_WETH_USDC.getReserves(); 
 
         // 2.1 liquidate the target user
         
-        uint debtToCover = amount1;
+        uint debtToCover = amount0;
         USDC.approve(address(lendingPool), debtToCover);
         lendingPool.liquidationCall(address(WETH), address(USDC), liquidationTarget, debtToCover, false);
         uint collateral_WETH = WETH.balanceOf(address(this));
         console.log("collateral_WETH", collateral_WETH);
-        // uint collateral_WETH = WETH.balanceOf(address(this));
+
         // repay
+
         uint repay_WETH = getAmountIn(debtToCover,reserve_WETH,reserve_USDC);
-        WETH.transfer(address(uniswapV2Pair_USDC_WETH), repay_WETH);
-        // uint now_value = WBTC.balanceOf(address(this));
- 
-        // 2.2 swap WBTC for other things or repay directly
-        
-        // WBTC.transfer(address(uniswapV2Pair_WBTC_WETH), collateral_WBTC);
-        // uint amountOut_WETH = getAmountOut(collateral_WBTC, reserve_WBTC_Pool2, reserve_WETH_Pool2);
-        // uniswapV2Pair_WBTC_WETH.swap(0, amountOut_WETH, address(this), "");
-
-
-        // 2.3 repay
-
-       
+        WETH.transfer(address(uniswapV2Pair_WETH_USDC), repay_WETH);
         
         // END TODO
     }
