@@ -291,7 +291,7 @@ describe("Liquidation", function () {
     });
 
     const gasPrice = 0;
-    const debt_USDC = ethers.utils.parseUnits("8520", 6);
+    const debt_USDC = ethers.utils.parseUnits("8550", 6);
 
     const accounts = await ethers.getSigners();
     const liquidator = accounts[0].address;
