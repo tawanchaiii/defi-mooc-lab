@@ -144,6 +144,7 @@ contract LiquidationOperator is IUniswapV2Callee {
     IUniswapV2Factory constant uniswapV2Factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
     IUniswapV2Pair immutable uniswapV2Pair_WETH_USDT; // Pool1
     IUniswapV2Pair immutable uniswapV2Pair_WBTC_WETH; // Pool2
+    IUniswapV2Pair immutable uniswapV2Pair_WBTC_USDT; // Pool3
 
     ILendingPool constant lendingPool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
 
@@ -195,7 +196,8 @@ contract LiquidationOperator is IUniswapV2Callee {
 
         uniswapV2Pair_WETH_USDT = IUniswapV2Pair(uniswapV2Factory.getPair(address(WETH), address(USDT))); // Pool1
         uniswapV2Pair_WBTC_WETH = IUniswapV2Pair(uniswapV2Factory.getPair(address(WBTC), address(WETH))); // Pool2
-        debt_USDT = 2916378221684;
+        uniswapV2Pair_WBTC_USDT = IUniswapV2Pair(uniswapV2Factory.getPair(address(WBTC), address(USDT))); // Pool3
+        debt_USDT = 2000000000;
         
         // END TODO
     }
@@ -238,12 +240,12 @@ contract LiquidationOperator is IUniswapV2Callee {
         // we should borrow USDT, liquidate the target user and get the WBTC, then swap WBTC to repay uniswap
         // (please feel free to develop other workflows as long as they liquidate the target user successfully)
 
-        uniswapV2Pair_WETH_USDT.swap(0, debt_USDT, address(this), "$");
+        uniswapV2Pair_WBTC_USDT.swap(0, debt_USDT, address(this), "$");
 
         // 3. Convert the profit into ETH and send back to sender
 
-        uint balance = WETH.balanceOf(address(this));
-        WETH.withdraw(balance);
+        uint balance = USDT.balanceOf(address(this));
+        WBTC.withdraw(balance);
         payable(msg.sender).transfer(address(this).balance);
 
         // END TODO
@@ -263,6 +265,7 @@ contract LiquidationOperator is IUniswapV2Callee {
         assert(msg.sender == address(uniswapV2Pair_WETH_USDT));
         (uint256 reserve_WETH_Pool1, uint256 reserve_USDT_Pool1, ) = uniswapV2Pair_WETH_USDT.getReserves(); // Pool1
         (uint256 reserve_WBTC_Pool2, uint256 reserve_WETH_Pool2, ) = uniswapV2Pair_WBTC_WETH.getReserves(); // Pool2
+        (uint256 reserve_WBTC_Pool3, uint256 reserve_USDT_Pool3, ) = uniswapV2Pair_WBTC_USDT.getReserves(); // Pool3
 
         // 2.1 liquidate the target user
         
@@ -270,18 +273,28 @@ contract LiquidationOperator is IUniswapV2Callee {
         USDT.approve(address(lendingPool), debtToCover);
         lendingPool.liquidationCall(address(WBTC), address(USDT), liquidationTarget, debtToCover, false);
         uint collateral_WBTC = WBTC.balanceOf(address(this));
+        
+        uint repay_WBTC = getAmountIn(collateral_WBTC, reserve_WBTC_Pool3, reserve_USDT_Pool3);
+        WBTC.transfer(address(uniswapV2Pair_WETH_USDT), repay_WBTC);
+        // now we will transfer WBTC TO WETH
+        uint profit_in_WBTC = WBTC.balanceOf(address(this));
+
+        uint amountOut_WETH = getAmountOut(profit_in_WBTC, reserve_WBTC_Pool2, reserve_WETH_Pool2);
+        uniswapV2Pair_WBTC_WETH.swap(0, amountOut_WETH, address(this), "");
+
+        
 
         // 2.2 swap WBTC for other things or repay directly
         
-        WBTC.transfer(address(uniswapV2Pair_WBTC_WETH), collateral_WBTC);
-        uint amountOut_WETH = getAmountOut(collateral_WBTC, reserve_WBTC_Pool2, reserve_WETH_Pool2);
-        uniswapV2Pair_WBTC_WETH.swap(0, amountOut_WETH, address(this), "");
+        // WBTC.transfer(address(uniswapV2Pair_WBTC_WETH), collateral_WBTC);
+        // uint amountOut_WETH = getAmountOut(collateral_WBTC, reserve_WBTC_Pool2, reserve_WETH_Pool2);
+        // uniswapV2Pair_WBTC_WETH.swap(0, amountOut_WETH, address(this), "");
 
 
-        // 2.3 repay
+        // // 2.3 repay
 
-        uint repay_WETH = getAmountIn(debtToCover, reserve_WETH_Pool1, reserve_USDT_Pool1);
-        WETH.transfer(address(uniswapV2Pair_WETH_USDT), repay_WETH);
+        // uint repay_WETH = getAmountIn(debtToCover, reserve_WETH_Pool1, reserve_USDT_Pool1);
+        // WETH.transfer(address(uniswapV2Pair_WETH_USDT), repay_WETH);
         
         // END TODO
     }
