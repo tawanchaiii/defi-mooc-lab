@@ -17,7 +17,8 @@ describe("Liquidation for question 3", function () {
     });
 
     const gasPrice = 0;
-    const debt_USDC = ethers.utils.parseUnits("8520", 6);
+    // const debt_USDC = ethers.utils.parseUnits("8128956343", 0); // from real world
+    const debt_USDC = ethers.utils.parseUnits("8550", 6); // best profit
 
     const accounts = await ethers.getSigners();
     const liquidator = accounts[0].address;
