@@ -76,10 +76,8 @@ describe("Liquidation for question 3", function () {
     );
 
     const profit = afterLiquidationBalance.sub(beforeLiquidationBalance);
-    console.log("Profit", utils.formatEther(profit), "ETH");
-
     console.log(
-      `Profit from using ${debt_USDC} USDC for the liquidation is`,
+      `Profit from flash loan ${debt_USDC} USDC for the liquidation is`,
       utils.formatEther(profit),
       "ETH"
     );
