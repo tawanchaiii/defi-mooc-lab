@@ -1,5 +1,58 @@
 # Hands-on Exercise: Flash Loan based Liquidation
 
+#### Modified by Tawanchai C. (6310500287)
+
+### Branch Description
+`main` contains `ALL` Liquidation cases. you can run this branch to see all result.
+`question_2` contains source code for question2 only.
+`question_3` contains source code for question3 only.
+
+
+### Getting started
+Via Docker
+```bash
+$> docker build -t defi-mooc-lab2 .
+$> docker run \                                                                                          
+-e ALCHE_API="<ALCHEMY HTTPS KEYS>" \
+-v "$(pwd)"/contracts:/lab2/contracts \
+-v "$(pwd)"/test:/lab2/test \
+-it defi-mooc-lab2 npm test
+```
+
+### Liquidation cases
+1. (Question 2) Liquidate `0x59CE4a2AC5bC3f5F225439B2993b86B42f6d3e9F` with 2000, 5000, and 10000 USDT.
+2. (Question 3) Liquidate `0x63f6037d3e9d51ad865056BF7792029803b6eEfD` with 8520 USDC.
+
+### Result 
+this is my result from test (original source code), question2, question3.
+
+```bash
+ Liquidation
+Profit 24.121848004675783112 ETH
+    ✓ test (87528ms)
+collateral_WBTC 6465099
+repay_WBTC 6042578
+Profit in WBTC 422521
+Profit 0.071339845436978967 ETH
+    ✓ above do flash loan with 2000 USDT. (6502ms)
+collateral_WBTC 16162749
+repay_WBTC 15772092
+Profit in WBTC 390657
+Profit 0.065959831248331509 ETH
+    ✓ above do flash loan with 5000 USDT. (1563ms)
+collateral_WBTC 32325499
+repay_WBTC 34044390
+Transaction revert, No profit from this liquidation
+    ✓ above do flash loan with 10000 USDT. (1536ms)
+collateral_WETH 6843969129079933704
+Profit from flash loan 8520000000 USDC for the liquidation is 0.413346284493952284 ETH
+    ✓ above do flash loan with 8250 USDC. (60639ms)
+```
+
+
+
+# For the original README 
+
 ## Exercise
 In this exercise, you are expected to implement a smart contract that performs a flash loan based liquidation.
 
