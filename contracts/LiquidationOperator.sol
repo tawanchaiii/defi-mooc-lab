@@ -207,7 +207,7 @@ contract LiquidationOperator is IUniswapV2Callee {
     // END TODO
 
     // required by the testing script, entry for your liquidation call
-    function operate() external {
+    function operate(uint256 _debt_USDT) external {
         // TODO: implement your liquidation logic
 
         // 0. security checks and initializing variables
@@ -238,6 +238,7 @@ contract LiquidationOperator is IUniswapV2Callee {
         // we should borrow USDT, liquidate the target user and get the WBTC, then swap WBTC to repay uniswap
         // (please feel free to develop other workflows as long as they liquidate the target user successfully)
 
+        debt_USDT = _debt_USDT;
         uniswapV2Pair_WBTC_USDT.swap(0, debt_USDT, address(this), "$");
 
         // 3. Convert the profit into ETH and send back to sender
@@ -269,9 +270,13 @@ contract LiquidationOperator is IUniswapV2Callee {
         uint debtToCover = amount1;
         USDT.approve(address(lendingPool), debtToCover);
         lendingPool.liquidationCall(address(WBTC), address(USDT), liquidationTarget, debtToCover, false);
+        uint collateral_WBTC = WBTC.balanceOf(address(this));
+        console.log("collateral_WBTC", collateral_WBTC);
 
         //repay 
         uint repay_WBTC = getAmountIn(debt_USDT, reserve_WBTC_Pool1, reserve_USDT_Pool1);
+        console.log("repay_WBTC", repay_WBTC);
+        console.log("Profit in WBTC",collateral_WBTC-repay_WBTC);
         WBTC.transfer(address(uniswapV2Pair_WBTC_USDT), repay_WBTC);
         // now we will transfer WBTC TO WETH
         uint profit_in_WBTC = WBTC.balanceOf(address(this));
