@@ -3,9 +3,9 @@
 #### Modified by Tawanchai C. (6310500287)
 
 ### Branch Description
-`main` contains `ALL` Liquidation cases. you can run this branch to see all result.
-`question_2` contains source code for question2 only.
-`question_3` contains source code for question3 only.
+- `main` contains `ALL` Liquidation cases. you can run this branch to see all result.
+- `question_2` contains source code for question2 only.
+- `question_3` contains source code for question3 only.
 
 
 ### Getting started
